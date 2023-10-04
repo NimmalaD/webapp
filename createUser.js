@@ -6,7 +6,7 @@ const User = require("./models/user");
 
 const createUser = async () => {
   const userData = [];
-  fs.createReadStream("./user.csv")
+  fs.createReadStream("/opt/user.csv")
     .pipe(csv())
     .on("data", (row) => {
       userData.push(row);
