@@ -6,7 +6,8 @@ const User = require("./models/user");
 const Assignment = require("./models/assignments");
 const sequelize = require("./models/index");
 
-// const auth = require('./createUser')
+app.use(express.json());
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -70,26 +71,28 @@ app.post("/assignments", isAuth, async (req, res) => {
     const user = await User.findOne({ where: { email } });
     const userId = user.uid;
     console.log(userId);
-    if(!req.body.name || !req.body.points || !req.body.num_of_attempts || !req.body.deadline){
-        return res.status(400).json({ message: "Please provide all the fields" });
+    if (
+      !req.body.name ||
+      !req.body.points ||
+      !req.body.num_of_attempts ||
+      !req.body.deadline
+    ) {
+      return res.status(400).json({ message: "Please provide all the fields" });
     }
     const newAssignment = new Assignment({
       ...req.body,
       user_id: userId,
-    });
-    const saveAssignment = await newAssignment.save();
-    res.send(saveAssignment);
-    
+    })
+    const saveAssignment = await newAssignment.save()
+    .then((saveAssignment)=>{return res.status(201).json(saveAssignment)})
+    .catch((err)=>{
+        return res.status(400).json({message: 'check min and max'})
+    })
+    // res.send(saveAssignment);
+
     //console.log(res)
-  } catch (error) {
-    console.log(error.message);
-    if (error.message.includes("Unexpected token")) {
-      next(createError(400, "Please fill the required details"));
-      return;
-    } else if (error.name === "ValidationError") {
-      next(createError(422, "Please enter the required fields"));
-      return;
-    }
+  } catch (err) {
+    return res.status(500).send()
   }
 });
 
@@ -105,26 +108,25 @@ app.put("/assignments/:id", isAuth, async (req, res, next) => {
     const options = { new: true };
     const assignment = await Assignment.findByPk(assignmentId);
     if (!assignment) {
-      return res.status(404).json({ message: "Assignment not found" });
+      return res.status(404).send("Assignment not found" );
     }
     if (assignment.user_id !== userId) {
       return res
-        .status(401)
-        .json({ message: "Unauthorized to update this assignment" });
+        .status(403)
+        .json({ message: "Forbidden" });
     }
-
-    await assignment.update(updatedAssignment, options);
-
-    res.json({ message: "Assignment updated successfully" });
+    if(!req.body.name || !req.body.deadline || !req.body.num_of_attempts || !req.body.points){
+        return res.status(400).json({message: "Please provide the fields to update"})
+    }
+    await assignment.update(updatedAssignment).then(()=> {
+        return res.json({ message: "Assignment updated successfully" });
+    }).catch((err)=>{
+        return res.status(400).json({message:'check min and max'})
+    })
+    
   } catch (error) {
     console.log(error.message);
-    if (error.message.includes("Unexpected token")) {
-      next(createError(400, "Please fill the required details"));
-      return;
-    } else if (error.name === "ValidationError") {
-      next(createError(422, "Please enter the required fields"));
-      return;
-    }
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
@@ -138,8 +140,7 @@ app.get("/assignments", isAuth, async (req, res, next) => {
       res.send(assignments);
     }
   } catch (error) {
-    console.log(error.message);
-    res.send(400)
+    res.status(500).send();
   }
 });
 
@@ -154,11 +155,8 @@ app.get("/assignments/:id", isAuth, async (req, res, next) => {
     res.json(assignment);
   } catch (error) {
     console.error(error.message);
-    if (error.name === "CastError" && error.kind === "ObjectId") {
-      return res.status(400).json({ message: "Provide a valid ID" });
-    }
     // Handle other errors
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).send()
   }
 });
 
@@ -174,28 +172,66 @@ app.delete("/assignments/:id", isAuth, async (req, res, next) => {
     //const options = { new: true };
     const assignment = await Assignment.findByPk(assignmentId);
     if (!assignment) {
-      return res.status(404).json({ message: "Assignment not found" });
-    }
+        return res.status(404).json({ message: "Assignment not found" });
+      }
     if (assignment.user_id !== userId) {
       return res
-        .status(401)
-        .json({ message: "Unauthorized to delete this assignment" });
+        .status(403)
+        .json({ message: "Forbidden" });
     }
-
     await assignment.destroy(assignment);
-
     res.json({ message: "Assignment deleted successfully" });
   } catch (error) {
-    console.log(error.message);
-    if (error.message.includes("Unexpected token")) {
-      next(createError(400, "Please fill the required details"));
-      return;
-    } else if (error.name === "ValidationError") {
-      next(createError(422, "Please enter the required fields"));
-      return;
-    }
+    return res.status(500).send()
   }
 });
+
+// app.use("/assignments/:id", (req, res, next) => {
+//   const id = req.params.id;
+//   if (req.method === "PATCH") {
+//     if (!id) {
+//       res.status(405).json({ message: "Method Not Allowed" });
+//     }
+//     res.status(405).json({ message: "Method Not Allowed" });
+//   } else {
+//     next();
+//   }
+// });
+
+app.patch('/*', isAuth, async(req,res,next)=>{
+    return res.send(405)
+})
+
+//Set 405 Method not allowed if the request is not GET
+app.use((request, response, next) => {
+    if (request.method === "GET") {
+      next();
+    } else {
+      response.status(405).send();
+    }
+  });
+  
+  //GET request for health check api
+  app.get("/healthz", async (req, res) => {
+    if (Object.keys(req.body).length > 0) {
+      return res.status(400).end();
+    }
+    //should not require params
+    if (Object.keys(req.query).length > 0) {
+      return res.status(400).end();
+    }
+    res.setHeader("Cache-Control", "no-cache");
+    try {
+      // Test the database connection
+      await sequelize.authenticate();
+      console.log("Database connection established successfully.");
+      res.status(200).send();
+    } catch (error) {
+      console.error("Database connection failed:", error);
+      res.status(503).send();
+    }
+  });
+  
 
 //PORT
 app.listen(3000, () => {
