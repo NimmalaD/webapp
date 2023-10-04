@@ -12,12 +12,12 @@ const sequelize = new Sequelize(
   }
 );
 
-sequelize.authenticate(() => {
-  try {
-    console.log("database connected...");
-  } catch (error) {
-    console.log("error" + err);
-  }
-});
+// sequelize.authenticate(() => {
+//   try {
+//     console.log("database connected...");
+//   } catch (error) {
+//     console.log("error" + err);
+//   }
+// });
 
 module.exports = sequelize;

@@ -5,12 +5,36 @@ const bcrypt = require("bcrypt");
 const User = require("./models/user");
 const Assignment = require("./models/assignments");
 const sequelize = require("./models/index");
+const mysql = require('mysql2')
 
 app.use(express.json());
 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const createDatabase = async () => {
+    //const { host, username, password, database } = config;
+    const database = 'CCdb'
+    const connection = await mysql.createConnection({
+      host: "localhost",
+      user: "root",
+      password: "Ndharma$123"
+    });
+     connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
+  };
+  (async () => {
+    try {
+      // Create the database if it doesn't exist
+      await createDatabase()
+      await sequelize.sync({alter: true}).then(()=> {
+        createUser() 
+    })
+    }
+    catch(err){
+      console.error("Error:", err);
+    }
+  })();
 
 const isAuth = async (req, res, next) => {
   const authorizationHeader = req.headers.authorization;
@@ -238,6 +262,6 @@ app.listen(3000, () => {
   console.log("server listening at 3000");
 });
 
-sequelize.sync().then(() => {
-  createUser();
-});
+// sequelize.sync().then(() => {
+//   createUser();
+// });
