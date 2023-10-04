@@ -3,7 +3,7 @@ const Sequelize = require('sequelize');
 
 
     const Assignment = sequelize.define('assignments', {
-        id: {
+        aid: {
             type: Sequelize.UUID,
             defaultValue: Sequelize.UUIDV1,
             primaryKey: true
@@ -13,16 +13,16 @@ const Sequelize = require('sequelize');
             allownull: false
         },
         points: {
-            type: Sequelize.NUMBER,
+            type: Sequelize.INTEGER,
             allownull: false,
             validate: {
-                isInt: true, // Ensure the value is an integer
-                min: 18,     // Minimum age limit
-                max: 100,    // Maximum age limit
+                isInt: true, 
+                min: 1,     
+                max: 100,    
               },
         },
         num_of_attempts: {
-            type: Sequelize.NUMBER,
+            type: Sequelize.INTEGER,
             allownull: false,
             validate: {
                 isInt: true, 
