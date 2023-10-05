@@ -1,0 +1,24 @@
+{
+  "name": "dharma_nimmala_002709754_02",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/healthzTest.js",
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "dot-env": "^0.0.1",
+    "express": "^4.18.2",
+    "http": "^0.0.1-security",
+    "mocha": "^10.2.0",
+    "mysql2": "^3.6.1",
+    "sequelize": "^6.33.0",
+    "supertest": "^6.3.3"
+  }
+}
