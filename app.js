@@ -85,6 +85,9 @@ app.post("/assignments", isAuth, async (req, res) => {
     ) {
       return res.status(400).json({ message: "Please provide all the fields" });
     }
+    if(req.body.assignment_created || req.body.assignment_updated){
+        return res.status(403).json({message: "No access permission"})
+    }
     const newAssignment = new Assignment({
       ...req.body,
       user_id: userId,
@@ -123,6 +126,9 @@ app.put("/assignments/:id", isAuth, async (req, res, next) => {
     }
     if(!req.body.name || !req.body.deadline || !req.body.num_of_attempts || !req.body.points){
         return res.status(400).json({message: "Please provide the fields to update"})
+    }
+    if(req.body.assignment_created || req.body.assignment_updated){
+        return res.status(403).json({message: "No access permission"})
     }
     await assignment.update(updatedAssignment).then(()=> {
         return res.json({ message: "Assignment updated successfully" });
@@ -243,6 +249,7 @@ app.use((request, response, next) => {
 app.listen(3000, () => {
   console.log("server listening at 3000");
 });
+module.exports = app;
 
 // sequelize.sync().then(() => {
 //   createUser();

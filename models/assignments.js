@@ -34,12 +34,15 @@ const Assignment = sequelize.define(
     deadline: {
       type: Sequelize.STRING,
       allownull: false,
+      
     },
     asignment_created: {
       type: Sequelize.DATE,
+      readonly: true
     },
     assignment_updated: {
       type: Sequelize.DATE,
+      readonly: true
     },
   },
   {

@@ -25,12 +25,15 @@ const User = sequelize.define(
     password: {
       type: Sequelize.STRING,
       allownull: false,
+      writeonly: true
     },
     account_created: {
       type: Sequelize.DATE,
+      readonly: true
     },
     account_updated: {
       type: Sequelize.DATE,
+      readonly: true
     },
   },
   {
