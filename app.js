@@ -78,7 +78,7 @@ Assignment.belongsTo(User, {
   foreignKey: "user_id",
 });
 
-app.post("/assignments", isAuth, async (req, res) => {
+app.post("/v1/assignments", isAuth, async (req, res) => {
   try {
     const postCredentials = getUser(req.headers.authorization);
     const [email] = postCredentials.split(":");
@@ -116,7 +116,7 @@ app.post("/assignments", isAuth, async (req, res) => {
   }
 });
 
-app.put("/assignments/:id", isAuth, async (req, res, next) => {
+app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
   const assignmentId = req.params.id;
   try {
     const postCredentials = getUser(req.headers.authorization);
@@ -156,7 +156,7 @@ app.put("/assignments/:id", isAuth, async (req, res, next) => {
   }
 });
 
-app.get("/assignments", isAuth, async (req, res, next) => {
+app.get("/v1/assignments", isAuth, async (req, res, next) => {
   //const assignmentId = req.params.id;
   try {
     const assignments = await Assignment.findAll();
@@ -170,7 +170,7 @@ app.get("/assignments", isAuth, async (req, res, next) => {
   }
 });
 
-app.get("/assignments/:id", isAuth, async (req, res, next) => {
+app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
   try {
     const assignmentId = req.params.id;
     // Find the assignment by ID
@@ -186,7 +186,7 @@ app.get("/assignments/:id", isAuth, async (req, res, next) => {
   }
 });
 
-app.delete("/assignments/:id", isAuth, async (req, res, next) => {
+app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
   const assignmentId = req.params.id;
   try {
     const postCredentials = getUser(req.headers.authorization);
