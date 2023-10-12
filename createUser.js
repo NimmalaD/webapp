@@ -2,7 +2,7 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const bcrypt = require("bcrypt");
 const sequelize = require("./models/index");
-const User = require("./models/user");
+const {User} = require("./models/index");
 
 const createUser = async () => {
   const userData = [];

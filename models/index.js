@@ -1,6 +1,24 @@
 const dbConfig = require("../config/dbConfig.js");
 
 const { Sequelize, DataTypes } = require("sequelize");
+const mysql = require("mysql2/promise");
+const UserModel = require("../models/user.js");
+const AssignmentModel = require("../models/assignments.js");
+
+const sequelizesync = async () => {
+  await sequelize.sync({ alter: true });
+  console.log("Models synchronized successfully.");
+};
+
+
+const db = async () => {
+  const connection = await mysql.createConnection({
+    host: dbConfig.host,
+    user: dbConfig.user,
+    password: dbConfig.password,
+  });
+  await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbConfig.database}\`;`);
+};
 
 const sequelize = new Sequelize(
   dbConfig.database,
@@ -12,12 +30,16 @@ const sequelize = new Sequelize(
   }
 );
 
-// sequelize.authenticate(() => {
-//   try {
-//     console.log("database connected...");
-//   } catch (error) {
-//     console.log("error" + err);
-//   }
-// });
+const User = UserModel(sequelize);
+const Assignment = AssignmentModel(sequelize);
 
 module.exports = sequelize;
+
+
+module.exports = {
+  sequelize,
+  db,
+  sequelizesync,
+  User,
+  Assignment,
+};
