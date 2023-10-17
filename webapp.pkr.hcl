@@ -80,7 +80,20 @@ build {
       "sudo apt update",
       "sudo apt install -y nodejs npm",
       "node -v",
-      "npm -v"
+      "npm -v",
+      "mkdir -p webapp/dist"
     ]
+  }
+  provisioner "file" {
+  source      = "dist/main.js"
+  destination = "/home/admin/webapp/dist/main.js"
+  }
+  provisioner "file" {
+  source      = ".env"
+  destination = "/home/admin/webapp/.env"
+  }
+  provisioner "file" {
+  source      = "package.json"
+  destination = "/home/admin/webapp/package.json"
   }
 }
