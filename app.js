@@ -4,22 +4,22 @@ const app = express();
 const bcrypt = require("bcrypt");
 const {sequelize,db,sequelizesync,User,Assignment} = require("./models/index");
 const mysql = require('mysql2')
-
+require('dotenv').config();
 app.use(express.json());
 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+const port = process.env.PORT;
 (async () => {
   try {
     await db();
     await sequelize.sync({ alter: true });
     await createUser();
 
-    app.listen(3000, () => {
-      console.log("Server running on port", 3000);
+    app.listen(port, () => {
+      console.log("Server running on port", port);
     });
   } catch (error) {
     console.error("Error:", error);

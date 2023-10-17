@@ -3,10 +3,13 @@ const csv = require("csv-parser");
 const bcrypt = require("bcrypt");
 const sequelize = require("./models/index");
 const {User} = require("./models/index");
+require('dotenv').config();
+const csv_file = process.env.CSV_FILE;
+
 
 const createUser = async () => {
   const userData = [];
-  fs.createReadStream("/opt/user.csv")
+  fs.createReadStream(csv_file)
     .pipe(csv())
     .on("data", (row) => {
       userData.push(row);

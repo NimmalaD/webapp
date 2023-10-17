@@ -10,8 +10,8 @@ jobs:
       mysql:
         image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: 'Ndharma$123'
-          MYSQL_DATABASE: 'CCdb'
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -31,5 +31,7 @@ jobs:
           done
       - name: Install project dependencies
         run: npm install
+      - name: Set up .env
+        run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
       - name: Run Integration tests 
         run: npm test
