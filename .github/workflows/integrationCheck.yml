@@ -24,9 +24,9 @@ jobs:
           node-version: 20
       - name: Configure AWS CLI Profile
         run: |
-          aws configure --profile github set aws_access_key_id ${{ secrets.GIT_ACCESSKEY_ID }}
-          aws configure --profile github set aws_secret_access_key ${{ secrets.GIT_SECRET_ACCESS_KEY }}
-          aws configure --profile github set region us-east-1  # Replace with your desired AWS region
+          aws configure --profile git set aws_access_key_id ${{ secrets.GIT_ACCESSKEY_ID }}
+          aws configure --profile git set aws_secret_access_key ${{ secrets.GIT_SECRET_ACCESS_KEY }}
+          aws configure --profile git set region us-east-1  # Replace with your desired AWS region
         env:
           AWS_DEFAULT_REGION: us-east-1
           AWS_PROFILE: git
