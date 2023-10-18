@@ -1,0 +1,29 @@
+name: Packer Format Check
+on:
+    pull_request:
+      branches:
+        - main
+jobs:
+  packer-format-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install Packer
+        run: |
+          wget https://releases.hashicorp.com/packer/1.8.5/packer_1.8.5_linux_amd64.zip
+          unzip packer_1.8.5_linux_amd64.zip
+          sudo mv packer /usr/local/bin/packer
+          packer --version
+        shell: bash
+        
+      - name: Install packer plugins
+        run: packer plugins install github.com/hashicorp/amazon
+          
+      - name: Check Packer Format
+        run: |
+          packer fmt -check ./webapp.pkr.hcl
+          packer validate ./webapp.pkr.hcl
+          echo "validation and packer formatting completed"

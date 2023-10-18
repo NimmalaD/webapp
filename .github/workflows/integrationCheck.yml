@@ -1,6 +1,6 @@
 name: Integration Test
 on:
-  pull_request:
+  push:
     branches:
       - main
 jobs:
@@ -35,3 +35,7 @@ jobs:
         run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
       - name: Run Integration tests 
         run: npm test
+      - name: build artifacts
+        run: npm run build
+      - name: build AMI
+        run: packer build webapp.pkr.hcl    
