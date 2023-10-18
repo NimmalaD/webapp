@@ -46,7 +46,7 @@ jobs:
         shell: bash
         
       - name: packer init
-        run: packer init
-        
+        run: packer init webapp.pkr.hcl
+
       - name: build AMI
         run: packer build webapp.pkr.hcl    
