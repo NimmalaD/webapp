@@ -1,4 +1,4 @@
-aws_profile   = "github_user"
+aws_profile   = "git"
 aws_region    = "us-west-1"
 source_ami    = "ami-071175b60c818694f"
 instance_type = "t2.micro"
