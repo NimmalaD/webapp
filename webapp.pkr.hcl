@@ -93,6 +93,11 @@ build {
     destination = "/home/admin/webapp/.env"
   }
   provisioner "file" {
+    source      = fileexists("user.csv") ? "user.csv" : "/"
+    destination = "/home/admin/webapp/user.csv"
+  }
+
+  provisioner "file" {
     source      = "package.json"
     destination = "/home/admin/webapp/package.json"
   }
@@ -100,7 +105,8 @@ build {
   provisioner "shell" {
 
     inline = [
-      "cd webapp && npm install"
+      "cd webapp && npm install",
+      "sudo mv user.csv /opt/"
     ]
   }
 }
