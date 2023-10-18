@@ -96,4 +96,11 @@ build {
     source      = "package.json"
     destination = "/home/admin/webapp/package.json"
   }
+
+  provisioner "shell" {
+
+    inline = [
+      "cd webapp && npm install"
+    ]
+  }
 }
