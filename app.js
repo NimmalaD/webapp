@@ -11,7 +11,9 @@ app.use(express.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 const port = process.env.PORT;
+
 (async () => {
   try {
     await db();
@@ -78,6 +80,7 @@ Assignment.belongsTo(User, {
   foreignKey: "user_id",
 });
 
+
 app.post("/v1/assignments", isAuth, async (req, res) => {
   try {
     const postCredentials = getUser(req.headers.authorization);
@@ -93,9 +96,11 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
     ) {
       return res.status(400).json({ message: "Please provide all the fields" });
     }
+
     if(!Number.isInteger(req.body.num_of_attempts) || !Number.isInteger(req.body.points)){
       return res.status(400).json({message: 'Give valid number'})
     }
+
     if(req.body.assignment_created || req.body.assignment_updated){
         return res.status(403).json({message: "No access permission"})
     }
@@ -115,6 +120,7 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
     return res.status(500).send()
   }
 });
+
 
 app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
   const assignmentId = req.params.id;
@@ -156,6 +162,7 @@ app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
   }
 });
 
+
 app.get("/v1/assignments", isAuth, async (req, res, next) => {
   //const assignmentId = req.params.id;
   try {
@@ -169,6 +176,7 @@ app.get("/v1/assignments", isAuth, async (req, res, next) => {
     res.status(500).send();
   }
 });
+
 
 app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
   try {
@@ -185,6 +193,7 @@ app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
     res.status(500).send()
   }
 });
+
 
 app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
   const assignmentId = req.params.id;

@@ -37,6 +37,7 @@ const sequelize = new Sequelize(
   }
 );
 
+
 const User = UserModel(sequelize);
 const Assignment = AssignmentModel(sequelize);
 

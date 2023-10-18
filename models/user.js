@@ -1,5 +1,6 @@
 const sequelize = require("./index.js");
 const Sequelize = require("sequelize");
+
 const userModel = (sequelize)=> {
   const User = sequelize.define(
     "user",
