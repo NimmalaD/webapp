@@ -101,6 +101,10 @@ build {
     destination = "/home/admin/webapp/user.csv"
   }
   provisioner "file" {
+    source      = fileexists(".env") ? ".env" : "/"
+    destination = "/home/admin/webapp/.env"
+  }
+  provisioner "file" {
     source      = "webapp.service"
     destination = "/home/admin/webapp/webapp.service"
   }
@@ -113,10 +117,10 @@ build {
 
     inline = [
       "cd webapp && npm install",
-      "sudo chown -R csye6225:csye6225 /opt/",
       "sudo mv ~/webapp/user.csv /opt/",
       "sudo mv ~/webapp/webapp.service /etc/systemd/system/",
       "sudo mv ~/webapp /opt/csye6225/",
+      "sudo chown -R csye6225:csye6225 /opt/",
       "sudo systemctl daemon-reload",
       "sudo systemctl enable webapp",
       "sudo systemctl start webapp",
