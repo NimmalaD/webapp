@@ -84,14 +84,6 @@ build {
     ]
     inline = [
       "sudo apt update",
-      "sudo apt install -y mariadb-server",
-      "sudo systemctl start mariadb",
-      "sudo systemctl enable mariadb",
-      "sudo mysql -u root <<EOF",
-      "ALTER USER 'root'@'localhost' IDENTIFIED BY 'password';",
-      "FLUSH PRIVILEGES;",
-      "EOF",
-      "sudo apt update",
       "sudo apt install -y nodejs npm",
       "node -v",
       "npm -v",
@@ -101,10 +93,6 @@ build {
   provisioner "file" {
     source      = fileexists("dist/main.js") ? "dist/main.js" : "/"
     destination = "/home/admin/webapp/dist/main.js"
-  }
-  provisioner "file" {
-    source      = fileexists(".env") ? ".env" : "/"
-    destination = "/home/admin/webapp/.env"
   }
   provisioner "file" {
     source      = fileexists("user.csv") ? "user.csv" : "/"

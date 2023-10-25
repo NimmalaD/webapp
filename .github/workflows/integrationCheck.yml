@@ -41,11 +41,6 @@ jobs:
         run: npm install
       - name: Set up .env
         run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
-      - name: Upload .env File
-        uses: actions/upload-artifact@v2
-        with:
-          name: .env
-          path: .env
       - name: Run Integration tests 
         run: npm test
       - name: build artifacts
