@@ -87,7 +87,9 @@ build {
       "sudo apt install -y nodejs npm",
       "node -v",
       "npm -v",
-      "mkdir -p webapp/dist"
+      "sudo groupadd csye6225",
+      "sudo useradd -s /bin/false -g csye6225 -d /opt/csye6225 -m csye6225",
+      "mkdir -p ~/webapp/dist"
     ]
   }
   provisioner "file" {
@@ -111,10 +113,10 @@ build {
 
     inline = [
       "cd webapp && npm install",
-      "sudo mv user.csv /opt/",
-      "sudo mv webapp.service /lib/systemd/system/",
-      "sudo groupadd csye6225",
-      "sudo useradd -s /bin/false -g csye6225 -d /opt/csye6225 -m csye6225",
+      "sudo chown -R csye6225:csye6225 /opt/",
+      "sudo mv ~/webapp/user.csv /opt/",
+      "sudo mv ~/webapp/webapp.service /etc/systemd/system/",
+      "sudo mv ~/webapp /opt/csye6225/",
       "sudo systemctl daemon-reload",
       "sudo systemctl enable webapp",
       "sudo systemctl start webapp",

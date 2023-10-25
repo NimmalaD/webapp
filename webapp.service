@@ -1,13 +1,13 @@
 [Unit]
 Description=Web App
-ConditionPathExists=/home/admin/webapp
+ConditionPathExists=/opt/csye6225/webapp
 After=network.target
 
 [Service]
 Type=simple
 User=csye6225
 Group=csye6225
-WorkingDirectory=/home/admin/webapp
+WorkingDirectory=/opt/csye6225/webapp
 ExecStart=/usr/bin/npm start
 Restart=always
 RestartSec=3

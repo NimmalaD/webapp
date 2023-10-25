@@ -30,6 +30,9 @@ const port = process.env.PORT;
 
 const isAuth = async (req, res, next) => {
   const authorizationHeader = req.headers.authorization;
+  if (!authorizationHeader || !authorizationHeader.startsWith("Basic ")) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
   const credentials = getUser(authorizationHeader);
   const [email, password] = credentials.split(":");
   const user = await User.findOne({ where: { email } });
@@ -57,10 +60,6 @@ app.get("/protected", isAuth, async (req, res) => {
 });
 
 const getUser = (authorizationHeader) => {
-  if (!authorizationHeader) {
-    return res.status(401).json({ message: "Unauthorized User" });
-  }
-
   const credentials = Buffer.from(
     authorizationHeader.split(" ")[1],
     "base64"
@@ -80,6 +79,10 @@ Assignment.belongsTo(User, {
   foreignKey: "user_id",
 });
 
+function isValidDate(dateString) {
+  const date = new Date(dateString);
+  return !isNaN(date) && dateString !== "";
+}
 
 app.post("/v1/assignments", isAuth, async (req, res) => {
   try {
@@ -96,11 +99,16 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
     ) {
       return res.status(400).json({ message: "Please provide all the fields" });
     }
-
+    if (typeof req.body.name !== "string") {
+      return res.status(400).json({ message: "name should be string" });
+    }
     if(!Number.isInteger(req.body.num_of_attempts) || !Number.isInteger(req.body.points)){
       return res.status(400).json({message: 'Give valid number'})
     }
-
+    const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+    if (!dateRegex.test(req.body.deadline)) {
+    return res.status(400).json({ message: "deadline should be in date format (e.g., 'YYYY-MM-DDTHH:mm:ss.sssZ')" });
+    }
     if(req.body.assignment_created || req.body.assignment_updated){
         return res.status(403).json({message: "No access permission"})
     }
@@ -144,8 +152,15 @@ app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
     if(!req.body.name || !req.body.deadline || !req.body.num_of_attempts || !req.body.points){
         return res.status(400).json({message: "Give valid number"})
     }
+    if (typeof req.body.name !== "string") {
+      return res.status(400).json({ message: "name should be string" });
+    }
     if(!Number.isInteger(req.body.num_of_attempts) || !Number.isInteger(req.body.points)){
       return res.status(400).json({message: 'Give valid number'})
+    }
+    const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+    if (!dateRegex.test(req.body.deadline)) {
+    return res.status(400).json({ message: "deadline should be in date format (e.g., 'YYYY-MM-DDTHH:mm:ss.sssZ')" });
     }
     if(req.body.assignment_created || req.body.assignment_updated){
         return res.status(403).json({message: "No access permission"})
