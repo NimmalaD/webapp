@@ -111,7 +111,7 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
     const saveAssignment = await newAssignment.save()
     .then((saveAssignment)=>{return res.status(201).json(saveAssignment)})
     .catch((err)=>{
-        return res.status(400).json({message: 'check min and max'})
+        return res.status(400).json({message: 'check max and min'})
     })
     // res.send(saveAssignment);
 
