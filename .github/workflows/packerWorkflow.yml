@@ -24,6 +24,11 @@ jobs:
           
       - name: Check Packer Format
         run: |
+          set -e
           packer fmt -check .
+          echo "formatting check passed for webapp.pkr.hcl"
+      - name: Check packer validate
+        run: |
+          set -e
           packer validate .
-          echo "validation and packer formatting completed"
+          echo "validation check passes for webapp.pkr.hcl"
