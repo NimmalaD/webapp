@@ -22,5 +22,5 @@ APP_PORT = 3000
 
 run app: npm start
 
-## Application Testing
+## Application  Testing
 run npm test : this runs test on tests/healthzTest.js
