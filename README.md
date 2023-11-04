@@ -20,7 +20,7 @@ DB_NAME = CCdb
 DB_DIALECT = mysql
 APP_PORT = 3000
 
-run app: npm start
+run app : npm start
 
 ## Application  Testing
 run npm test : this runs test on tests/healthzTest.js
