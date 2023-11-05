@@ -112,6 +112,10 @@ build {
     source      = "package.json"
     destination = "/home/admin/webapp/package.json"
   }
+  provisioner "file" {
+    source      = "cloudwatch-config.json"
+    destination = "/home/admin/webapp/cloudwatch-config.json"
+  }
 
   provisioner "shell" {
 
@@ -124,7 +128,11 @@ build {
       "sudo systemctl daemon-reload",
       "sudo systemctl enable webapp",
       "sudo systemctl start webapp",
-
+      "cd /tmp",
+      "wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -O amazon-cloudwatch-agent.deb",
+      "sudo dpkg -i -E ./amazon-cloudwatch-agent.deb",
+      "sudo systemctl enable amazon-cloudwatch-agent",
+      "sudo systemctl start amazon-cloudwatch-agent"
     ]
   }
 }
