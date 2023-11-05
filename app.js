@@ -4,6 +4,7 @@ const app = express();
 const bcrypt = require("bcrypt");
 const {sequelize,db,sequelizesync,User,Assignment} = require("./models/index");
 const mysql = require('mysql2')
+const logger = require("./logger.js");
 require('dotenv').config();
 app.use(express.json());
 
@@ -16,16 +17,20 @@ const port = process.env.PORT;
 
 (async () => {
   try {
+    logger.info('[' + new Date().toISOString() + '] Starting database setup and server initialization.');
     await db();
     await sequelize.sync({ alter: true });
     await createUser();
-
+    logger.info('[' + new Date().toISOString() + '] Database setup and server initialization succeeded.');
+  } catch (error) {
+    logger.error('[' + new Date().toISOString() + '] Database not connected')
+    console.error("Error:", error);
+  } finally{
+    logger.info('[' + new Date().toISOString() + '] Server listening')
     app.listen(port, () => {
       console.log("Server running on port", port);
     });
-  } catch (error) {
-    console.error("Error:", error);
-  }
+    }
 })();
 
 const isAuth = async (req, res, next) => {
@@ -105,6 +110,12 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
     if(!Number.isInteger(req.body.num_of_attempts) || !Number.isInteger(req.body.points)){
       return res.status(400).json({message: 'Give valid number'})
     }
+    if(req.body.points > 100 || req.body.points <= 0){
+      return res.status(400).json({message: 'Check min and max'})
+    }
+    if(req.body.num_of_attempts > 100 || req.body.num_of_attempts <= 0){
+      return res.status(400).json({message: 'Check min and max'})
+    }
     const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
     if (!dateRegex.test(req.body.deadline)) {
     return res.status(400).json({ message: "deadline should be in date format (e.g., 'YYYY-MM-DDTHH:mm:ss.sssZ')" });
@@ -116,15 +127,16 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
       ...req.body,
       user_id: userId,
     })
+    try{
     const saveAssignment = await newAssignment.save()
-    .then((saveAssignment)=>{return res.status(201).json(saveAssignment)})
-    .catch((err)=>{
-        return res.status(400).json({message: 'check max and min'})
-    })
-    // res.send(saveAssignment);
-
+    res.status(201).json(saveAssignment);
+    logger.info('[' + new Date().toISOString() + '] Assignnment created')
+    } catch(error){
+      logger.error('Error:', error)
+    }
     //console.log(res)
-  } catch (err) {
+  } catch (error) {
+    logger.error('[' + new Date().toISOString() + '] Error:', error)
     return res.status(500).send()
   }
 });
@@ -166,12 +178,15 @@ app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
         return res.status(403).json({message: "No access permission"})
     }
     await assignment.update(updatedAssignment).then(()=> {
+      logger.info('[' + new Date().toISOString() + '] Assignment Updated')
         return res.status(204).send();
-    }).catch((err)=>{
+    }).catch((error)=>{
+      logger.error('[' + new Date().toISOString() + '] Check min and max')
         return res.status(400).json({message:'check min and max'})
     })
     
   } catch (error) {
+    logger.error('[' + new Date().toISOString() + '] Error:', error)
     console.log(error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -185,9 +200,11 @@ app.get("/v1/assignments", isAuth, async (req, res, next) => {
     if (!assignments) {
       res.send(202).json({ message: "Assignments not found" });
     } else {
+      logger.info('[' + new Date().toISOString() + '] Assignments Found')
       res.send(assignments);
     }
   } catch (error) {
+    loffer.error('[' + new Date().toISOString() + '] Error:', error)
     res.status(500).send();
   }
 });
@@ -199,12 +216,15 @@ app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
     // Find the assignment by ID
     const assignment = await Assignment.findByPk(assignmentId);
     if (!assignment) {
+      logger.info('[' + new Date().toISOString() + '] Assignment not found')
       return res.status(404).json({ message: "Assignment not found" });
-    }
-    res.json(assignment);
+    }else{
+      logger.info('[' + new Date().toISOString() + '] Assignment found')
+    res.status(200).json(assignment);
+  }
   } catch (error) {
     console.error(error.message);
-    // Handle other errors
+    logger.error('[' + new Date().toISOString() + '] Error:', error)
     res.status(500).send()
   }
 });
@@ -222,6 +242,7 @@ app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
     //const options = { new: true };
     const assignment = await Assignment.findByPk(assignmentId);
     if (!assignment) {
+      logger.info('[' + new Date().toISOString() + '] Assignment not found')
         return res.status(404).json({ message: "Assignment not found" });
       }
     if (assignment.user_id !== userId) {
@@ -230,25 +251,16 @@ app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
         .json({ message: "Forbidden" });
     }
     await assignment.destroy(assignment);
+    logger.info('[' + new Date().toISOString() + '] Assignment Deleted')
     return res.status(204).send();
   } catch (error) {
+    logger.error('[' + new Date().toISOString() + '] Error:', error)
     return res.status(500).send()
   }
 });
 
-// app.use("/assignments/:id", (req, res, next) => {
-//   const id = req.params.id;
-//   if (req.method === "PATCH") {
-//     if (!id) {
-//       res.status(405).json({ message: "Method Not Allowed" });
-//     }
-//     res.status(405).json({ message: "Method Not Allowed" });
-//   } else {
-//     next();
-//   }
-// });
-
 app.patch('/*', isAuth, async(req,res,next)=>{
+  logger.info('[' + new Date().toISOString() + '] Patch not allowed')
     return res.send(405)
 })
 
@@ -274,21 +286,15 @@ app.use((request, response, next) => {
     try {
       // Test the database connection
       await sequelize.authenticate();
+      logger.info('[' + new Date().toISOString() + '] Database connected successfully')
       console.log("Database connection established successfully.");
       res.status(200).send();
     } catch (error) {
+      logger.error('[' + new Date().toISOString() + '] Database connection failed')
       console.error("Database connection failed:", error);
       res.status(503).send();
     }
   });
   
-
-//PORT
-// app.listen(3000, () => {
-//   console.log("server listening at 3000");
-// });
 module.exports = app;
 
-// sequelize.sync().then(() => {
-//   createUser();
-// });
