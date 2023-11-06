@@ -22,17 +22,16 @@ const port = process.env.PORT;
     await db();
     await sequelize.sync({ alter: true });
     await createUser();
+    logger.info('[' + new Date().toISOString() + '] Server listening')
+    app.listen(port, () => {
+      console.log("Server running on port", port)});
     logger.info('[' + new Date().toISOString() + '] Database setup and server initialization succeeded.');
   } catch (error) {
     logger.error('[' + new Date().toISOString() + '] Database not connected')
     console.error("Error:", error);
-  } finally{
-    logger.info('[' + new Date().toISOString() + '] Server listening')
-    app.listen(port, () => {
-      console.log("Server running on port", port);
-    });
+  };
     }
-})();
+  )();
 
 const isAuth = async (req, res, next) => {
   const authorizationHeader = req.headers.authorization;
