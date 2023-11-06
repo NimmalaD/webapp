@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const {sequelize,db,sequelizesync,User,Assignment} = require("./models/index");
 const mysql = require('mysql2')
 const logger = require("./logger.js");
+const client = require("./statsD.js")
 require('dotenv').config();
 app.use(express.json());
 
@@ -90,6 +91,7 @@ function isValidDate(dateString) {
 }
 
 app.post("/v1/assignments", isAuth, async (req, res) => {
+  client.increment("post assignment")
   try {
     const postCredentials = getUser(req.headers.authorization);
     const [email] = postCredentials.split(":");
@@ -143,6 +145,7 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
 
 
 app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
+  client.increment("put assignment")
   const assignmentId = req.params.id;
   try {
     const postCredentials = getUser(req.headers.authorization);
@@ -194,6 +197,7 @@ app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
 
 
 app.get("/v1/assignments", isAuth, async (req, res, next) => {
+  client.increment("get assignments")
   //const assignmentId = req.params.id;
   try {
     const assignments = await Assignment.findAll();
@@ -211,6 +215,7 @@ app.get("/v1/assignments", isAuth, async (req, res, next) => {
 
 
 app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
+  client.increment("get assignment using id")
   try {
     const assignmentId = req.params.id;
     // Find the assignment by ID
@@ -231,6 +236,7 @@ app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
 
 
 app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
+  client.increment("delete assignment");
   const assignmentId = req.params.id;
   try {
     const postCredentials = getUser(req.headers.authorization);
@@ -260,6 +266,7 @@ app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
 });
 
 app.patch('/*', isAuth, async(req,res,next)=>{
+  client.increment("patch assignment");
   logger.info('[' + new Date().toISOString() + '] Patch not allowed')
     return res.send(405)
 })
@@ -275,6 +282,7 @@ app.use((request, response, next) => {
   
   //GET request for health check api
   app.get("/healthz", async (req, res) => {
+    client.increment("/healthz");
     if (Object.keys(req.body).length > 0) {
       return res.status(400).end();
     }
