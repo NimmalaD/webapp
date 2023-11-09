@@ -27,7 +27,6 @@ const port = process.env.PORT;
       console.log("Server running on port", port)});
     logger.info('[' + new Date().toISOString() + '] Database setup and server initialization succeeded.');
   } catch (error) {
-    logger.error('[' + new Date().toISOString() + '] Database not connected')
     console.error("Error:", error);
   };
     }
