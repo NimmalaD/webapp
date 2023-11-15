@@ -33,8 +33,24 @@ const port = process.env.PORT;
   )();
 
 const isAuth = async (req, res, next) => {
+  if(req.method == "GET" && req.originalUrl == '/v1/assignments/'){
+    client.increment('assignment_get')
+  }
+  else if(req.method == "GET" ){
+    client.increment('assignment_getbyid')
+  }
+  else if(req.method == "POST"){
+    client.increment('assignment_post')
+  }
+  else if(req.method == "PUT"){
+    client.increment('assignment_put')
+  }
+  else if(req.method == "DELETE"){
+    client.increment('assignment_delete')
+  }
   const authorizationHeader = req.headers.authorization;
   if (!authorizationHeader || !authorizationHeader.startsWith("Basic ")) {
+    logger.info("Basic Auth not selected")
     return res.status(401).json({ message: "Unauthorized" });
   }
   const credentials = getUser(authorizationHeader);
@@ -43,15 +59,18 @@ const isAuth = async (req, res, next) => {
   console.log(user);
   try {
     if (!user) {
+      logger.info(`Unauthorized User - ${email} not found`)
       return res.status(401).json({ message: "Unauthorized" });
     }
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (passwordMatch) {
       next();
     } else {
+      logger.info(`Unauthorized User - ${password} did not match`)
       return res.status(401).json({ message: "Unauthorized User" });
     }
   } catch (error) {
+    logger.error(`Authentication error ${error}`)
     console.error("Authentication Error:", error);
     res.status(500).send("Internal Server Error");
   }
@@ -89,7 +108,7 @@ function isValidDate(dateString) {
 }
 
 app.post("/v1/assignments", isAuth, async (req, res) => {
-  client.increment("post assignment")
+  // client.increment("post assignment")
   try {
     const postCredentials = getUser(req.headers.authorization);
     const [email] = postCredentials.split(":");
@@ -102,25 +121,32 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
       !req.body.num_of_attempts ||
       !req.body.deadline
     ) {
+      logger.info('Please provide all fields')
       return res.status(400).json({ message: "Please provide all the fields" });
     }
     if (typeof req.body.name !== "string") {
+      logger.info('Invalid input')
       return res.status(400).json({ message: "name should be string" });
     }
     if(!Number.isInteger(req.body.num_of_attempts) || !Number.isInteger(req.body.points)){
+      logger.info('Please provide all fields')
       return res.status(400).json({message: 'Give valid number'})
     }
     if(req.body.points > 100 || req.body.points <= 0){
+      logger.info('Invalid input')
       return res.status(400).json({message: 'Check min and max'})
     }
     if(req.body.num_of_attempts > 100 || req.body.num_of_attempts <= 0){
+      logger.info('Invalid input')
       return res.status(400).json({message: 'Check min and max'})
     }
     const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
     if (!dateRegex.test(req.body.deadline)) {
+      logger.info('Invalid input')
     return res.status(400).json({ message: "deadline should be in date format (e.g., 'YYYY-MM-DDTHH:mm:ss.sssZ')" });
     }
     if(req.body.assignment_created || req.body.assignment_updated){
+      logger.info('No access permission')
         return res.status(403).json({message: "No access permission"})
     }
     const newAssignment = new Assignment({
@@ -130,7 +156,7 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
     try{
     const saveAssignment = await newAssignment.save()
     res.status(201).json(saveAssignment);
-    logger.info('[' + new Date().toISOString() + '] Assignnment created')
+    logger.info(`Assignnment "${req.body.name}" created`)
     } catch(error){
       logger.error('Error:', error)
     }
@@ -143,7 +169,7 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
 
 
 app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
-  client.increment("put assignment")
+  // client.increment("put assignment")
   const assignmentId = req.params.id;
   try {
     const postCredentials = getUser(req.headers.authorization);
@@ -155,31 +181,36 @@ app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
     const options = { new: true };
     const assignment = await Assignment.findByPk(assignmentId);
     if (!assignment) {
+      logger.info(`Assignment with id: "${assignmentId}" not found`)
       return res.status(404).send("Assignment not found" );
     }
     if (assignment.user_id !== userId) {
-      return res
-        .status(403)
-        .json({ message: "Forbidden" });
+      logger.info('Forbidden user')
+      return res.status(403).json({ message: "Forbidden" });
     }
     if(!req.body.name || !req.body.deadline || !req.body.num_of_attempts || !req.body.points){
-        return res.status(400).json({message: "Give valid number"})
+      logger.info('Provide all fields')
+        return res.status(400).json({message: "Provide all fields"})
     }
     if (typeof req.body.name !== "string") {
+      logger.info('invalid input')
       return res.status(400).json({ message: "name should be string" });
     }
     if(!Number.isInteger(req.body.num_of_attempts) || !Number.isInteger(req.body.points)){
+      logger.info('invalid input')
       return res.status(400).json({message: 'Give valid number'})
     }
     const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
     if (!dateRegex.test(req.body.deadline)) {
+      logger.info('invalid input')
     return res.status(400).json({ message: "deadline should be in date format (e.g., 'YYYY-MM-DDTHH:mm:ss.sssZ')" });
     }
     if(req.body.assignment_created || req.body.assignment_updated){
+      logger.info('No access permission')
         return res.status(403).json({message: "No access permission"})
     }
     await assignment.update(updatedAssignment).then(()=> {
-      logger.info('[' + new Date().toISOString() + '] Assignment Updated')
+      logger.info(`Assignment "${req.body.name}" Updated`)
         return res.status(204).send();
     }).catch((error)=>{
       logger.error('[' + new Date().toISOString() + '] Check min and max')
@@ -195,14 +226,15 @@ app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
 
 
 app.get("/v1/assignments", isAuth, async (req, res, next) => {
-  client.increment("get assignments")
+  // client.increment("get assignments")
   //const assignmentId = req.params.id;
   try {
     const assignments = await Assignment.findAll();
     if (!assignments) {
+      logger.info('Assignments not found')
       res.send(202).json({ message: "Assignments not found" });
     } else {
-      logger.info('[' + new Date().toISOString() + '] Assignments Found')
+      logger.info('Assignments Found')
       res.send(assignments);
     }
   } catch (error) {
@@ -213,13 +245,13 @@ app.get("/v1/assignments", isAuth, async (req, res, next) => {
 
 
 app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
-  client.increment("get assignment using id")
+  // client.increment("get assignment using id")
   try {
     const assignmentId = req.params.id;
     // Find the assignment by ID
     const assignment = await Assignment.findByPk(assignmentId);
     if (!assignment) {
-      logger.info('[' + new Date().toISOString() + '] Assignment not found')
+      logger.info(`Assignment with id: "${assignmentId}" not found`)
       return res.status(404).json({ message: "Assignment not found" });
     }else{
       logger.info('[' + new Date().toISOString() + '] Assignment found')
@@ -234,7 +266,7 @@ app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
 
 
 app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
-  client.increment("delete assignment");
+  // client.increment("delete assignment");
   const assignmentId = req.params.id;
   try {
     const postCredentials = getUser(req.headers.authorization);
@@ -246,16 +278,15 @@ app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
     //const options = { new: true };
     const assignment = await Assignment.findByPk(assignmentId);
     if (!assignment) {
-      logger.info('[' + new Date().toISOString() + '] Assignment not found')
+      logger.info(`Assignment with id: "${assignmentId}" not found`)
         return res.status(404).json({ message: "Assignment not found" });
       }
     if (assignment.user_id !== userId) {
-      return res
-        .status(403)
-        .json({ message: "Forbidden" });
+      logger.info('forbidden user')
+      return res.status(403).json({ message: "Forbidden" });
     }
     await assignment.destroy(assignment);
-    logger.info('[' + new Date().toISOString() + '] Assignment Deleted')
+    logger.info(`Assignment ${assignmentId} Deleted`)
     return res.status(204).send();
   } catch (error) {
     logger.error('[' + new Date().toISOString() + '] Error:', error)
@@ -264,7 +295,7 @@ app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
 });
 
 app.patch('/*', isAuth, async(req,res,next)=>{
-  client.increment("patch assignment");
+  // client.increment("patch assignment");
   logger.info('[' + new Date().toISOString() + '] Patch not allowed')
     return res.send(405)
 })
