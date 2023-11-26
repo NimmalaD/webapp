@@ -4,6 +4,7 @@ const { Sequelize, DataTypes } = require("sequelize");
 const mysql = require("mysql2/promise");
 const UserModel = require("../models/user.js");
 const AssignmentModel = require("../models/assignments.js");
+const SubmissionModel = require("../models/submissions.js")
 require('dotenv').config();
 
 const database = process.env.DB_NAME
@@ -40,7 +41,7 @@ const sequelize = new Sequelize(
 
 const User = UserModel(sequelize);
 const Assignment = AssignmentModel(sequelize);
-
+const Submission = SubmissionModel(sequelize);
 module.exports = sequelize;
 
 
@@ -50,4 +51,5 @@ module.exports = {
   sequelizesync,
   User,
   Assignment,
+  Submission
 };

@@ -2,7 +2,8 @@ const express = require("express");
 const createUser = require("./createUser");
 const app = express();
 const bcrypt = require("bcrypt");
-const {sequelize,db,sequelizesync,User,Assignment} = require("./models/index");
+const {sequelize,db,sequelizesync,User,Assignment,Submission} = require("./models/index");
+const snsService = require('./snsService.js')
 const mysql = require('mysql2')
 const logger = require("./logger.js");
 const client = require("./statsD.js")
@@ -101,6 +102,13 @@ User.hasMany(Assignment, {
 Assignment.belongsTo(User, {
   foreignKey: "user_id",
 });
+Assignment.hasMany(Submission, {
+  foreignKey : "assignment_id"
+})
+Submission.belongsTo(Assignment, {
+  foreignKey : "assignment_id"
+})
+
 
 function isValidDate(dateString) {
   const date = new Date(dateString);
@@ -299,6 +307,57 @@ app.patch('/*', isAuth, async(req,res,next)=>{
   logger.info('[' + new Date().toISOString() + '] Patch not allowed')
     return res.send(405)
 })
+
+const topicARN = "arn:aws:sns:us-west-1:370574144948:mySNS";
+
+app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
+  try {
+    const postCredentials = getUser(req.headers.authorization);
+    const [email] = postCredentials.split(":");
+    const user = await User.findOne({ where: { email } });
+    console.log(email)
+    const assignmentId = req.params.id;
+    const { submissionDetails, submission_url } = req.body;
+    const assignment = await Assignment.findByPk(assignmentId)
+    if(!assignment){
+      return res.status(404).json("Assignment not found")
+    }
+    const numAttempts = await Submission.count({
+      where: { assignment_id: assignmentId }
+    });
+    const currentDate = new Date();
+    if(currentDate > assignment.deadline){
+      return res.status(403).json("Cannot submit after deadline")
+    }
+    if (numAttempts >= assignment.num_of_attempts) {
+      return res.status(403).json({ message: "Exceeded maximum attempts" });
+    }
+    if(!req.body.submission_url){
+        return res.status(400).json("required fields are missing")
+      }
+    // Create a new submission
+    const newSubmission = await Submission.create({
+      assignment_id : assignmentId,
+      submission_details: submissionDetails,
+      ...req.body
+    });
+    res.status(201).json(newSubmission);
+    console.log(newSubmission);
+    if (!topicARN) {
+      return res.status(404).json({ message: 'SNS Topic ARN not found.' });
+    }
+    try {
+      await snsService.postToSNSTopic(email,submission_url, topicARN);
+      logger.info("message posted successfully")
+    } catch (error) {
+      logger.info("cannot post the message")
+    }
+  } 
+   catch (error) {
+    logger.error('Error submitting assignment:', error);
+    res.status(500).json({ message: "Error submitting assignment" });
+  }
+});
 
 //Set 405 Method not allowed if the request is not GET
 app.use((request, response, next) => {
