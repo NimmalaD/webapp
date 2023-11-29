@@ -308,7 +308,6 @@ app.patch('/*', isAuth, async(req,res,next)=>{
     return res.send(405)
 })
 
-const topicARN = "arn:aws:sns:us-west-1:370574144948:mySNS";
 
 app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
   try {
@@ -343,11 +342,8 @@ app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
     });
     res.status(201).json(newSubmission);
     console.log(newSubmission);
-    if (!topicARN) {
-      return res.status(404).json({ message: 'SNS Topic ARN not found.' });
-    }
     try {
-      await snsService.postToSNSTopic(email,submission_url, topicARN);
+      await snsService.postToSNSTopic(email,submission_url);
       logger.info("message posted successfully")
     } catch (error) {
       logger.info("cannot post the message")
