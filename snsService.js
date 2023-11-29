@@ -20,6 +20,7 @@ const postToSNSTopic = async (email,url, topicARN) => {
   try {
     const result = await sns.publish(params).promise();
     console.log('Message sent:', result.MessageId);
+    console.log(result)
     return result;
   } catch (error) {
     console.error('Error publishing message:', error);

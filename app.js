@@ -310,7 +310,7 @@ app.patch('/*', isAuth, async(req,res,next)=>{
 
 const topicARN = "arn:aws:sns:us-west-1:370574144948:mySNS";
 
-app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
+app.post("/v1/assignments/:id/submission", isAuth, async (req, res) => {
   try {
     const postCredentials = getUser(req.headers.authorization);
     const [email] = postCredentials.split(":");
@@ -320,6 +320,7 @@ app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
     const { submissionDetails, submission_url } = req.body;
     const assignment = await Assignment.findByPk(assignmentId)
     if(!assignment){
+      logger.info("Assignment not found")
       return res.status(404).json("Assignment not found")
     }
     const numAttempts = await Submission.count({
@@ -327,12 +328,15 @@ app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
     });
     const currentDate = new Date();
     if(currentDate > assignment.deadline){
+      logger.info("Cannot submit after deadline")
       return res.status(403).json("Cannot submit after deadline")
     }
     if (numAttempts >= assignment.num_of_attempts) {
+      logger.info("Exceeded maximum attempts")
       return res.status(403).json({ message: "Exceeded maximum attempts" });
     }
     if(!req.body.submission_url){
+      logge.info("required fields are missing")
         return res.status(400).json("required fields are missing")
       }
     // Create a new submission
@@ -344,6 +348,7 @@ app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
     res.status(201).json(newSubmission);
     console.log(newSubmission);
     if (!topicARN) {
+      logger.info("SNS Topic ARN not found")
       return res.status(404).json({ message: 'SNS Topic ARN not found.' });
     }
     try {
