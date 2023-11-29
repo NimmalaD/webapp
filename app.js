@@ -309,7 +309,7 @@ app.patch('/*', isAuth, async(req,res,next)=>{
 })
 
 
-app.post("/v1/assignments/:id/submit", isAuth, async (req, res) => {
+app.post("/v1/assignments/:id/submission", isAuth, async (req, res) => {
   try {
     const postCredentials = getUser(req.headers.authorization);
     const [email] = postCredentials.split(":");
