@@ -1,12 +1,13 @@
 const AWS = require('aws-sdk');
+const AWS_REGION = process.env.AWS_REGION
+const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN
 
-AWS.config.update({ 
-    accessKeyId : "AKIAVMR7QWW2ET6LS7HO",
-    secretAccessKey : "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",
-    region: 'us-west-1' });
+AWS.config.update({
+    region: AWS_REGION });
+
 const sns = new AWS.SNS();
 
-const postToSNSTopic = async (email,url, topicARN) => {
+const postToSNSTopic = async (email,url) => {
     const message = {
         email,
         url
@@ -14,7 +15,7 @@ const postToSNSTopic = async (email,url, topicARN) => {
   const params = {
     Message: JSON.stringify(message),
     Subject: 'New Post',
-    TopicArn: topicARN,
+    TopicArn: SNS_TOPIC_ARN,
   };
 
   try {
