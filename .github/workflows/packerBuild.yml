@@ -58,15 +58,14 @@ jobs:
 
       - name: build AMI
         run: packer build .  
-
-      - name: Configure AWS CLI Demo Profile
-        run: |
-          aws configure --profile demo set aws_access_key_id ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
-          aws configure --profile demo set aws_secret_access_key ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
-          aws configure --profile demo set region us-west-1  # Replace with your desired AWS region
-        env:
-          AWS_DEFAULT_REGION: us-west-1
-          AWS_PROFILE: demo
+      
+      - name: Set up AWS CLI Demo
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+          aws-profile: demo
 
       - name: Fetch ami
         run: |
