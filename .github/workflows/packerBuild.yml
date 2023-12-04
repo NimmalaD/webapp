@@ -74,11 +74,29 @@ jobs:
                             --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' \
                             --output text)
           echo "Latest AMI ID is $latest_ami_id"
-        shell: bash
-      - name: Create New Launch Template Version
+
+          launch_template_id=$(aws ec2 describe-launch-templates --launch-template-names my-launch-template --query 'LaunchTemplates[0].LaunchTemplateId')
+          echo $launch_template_id
+          aws ec2 create-launch-template-version --launch-template-name my-launch-template --version-description WebVersion2 --source-version 1 --launch-template-data "ImageId=$latest_ami_id"
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name my-autoscaling-group \
+            --launch-template LaunchTemplateId=$launch_template_id,Version='$Latest'
+      - name: Initiate Instance Refresh
         run: |
-          aws ec2 create-launch-template-version \
-            --launch-template-name my-launch-template \
-            --source-version 1 \
-            --version-description "New version with updated AMI" \
-            --launch-template-data "{\"ImageId\": \"$latest_ami_id\"}" 
+          aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name my-autoscaling-group
+      - name: Wait for Instance Refresh to Complete
+        run: |
+          status="InProgress"
+          while [ "$status" == "InProgress" ]; do
+            sleep 60
+            status=$(aws autoscaling describe-instance-refreshes \
+                      --auto-scaling-group-name my-autoscaling-group \
+                      --query 'InstanceRefreshes[*].Status' \
+                      --output text)
+          if [[ "$status" == *"InProgress"* ]]; then
+              status="InProgress"
+          else
+              status="Completed"
+          fi
+          done
