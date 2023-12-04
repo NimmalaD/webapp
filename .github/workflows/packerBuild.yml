@@ -66,7 +66,7 @@ jobs:
                             --output text)
           echo "Latest AMI ID is $latest_ami_id"
         shell: bash
-      - name: Create New Launch Template Version
+      - name: New Launch Template Version
         run: |
           aws ec2 create-launch-template-version \
             --launch-template-id lt-05c57828138faee4f \
