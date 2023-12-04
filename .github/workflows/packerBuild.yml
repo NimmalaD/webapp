@@ -65,12 +65,12 @@ jobs:
                             --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' \
                             --output text)
           echo "Latest AMI ID is $latest_ami_id"
-
-      - name: Create New Launch Template Version
+        shell: bash
+      - name: New Launch Template Version
         run: |
           aws ec2 create-launch-template-version \
             --launch-template-id lt-05c57828138faee4f \
             --source-version latest \
             --version-description "New version with updated AMI" \
             --launch-template-data "{\"ImageId\": \"$latest_ami_id\"}" \
-            --region your-aws-region
+            --region us-east-1
