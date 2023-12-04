@@ -58,6 +58,16 @@ jobs:
 
       - name: build AMI
         run: packer build .  
+
+      - name: Configure AWS CLI Demo Profile
+        run: |
+          aws configure --profile demo set aws_access_key_id ${{ secrets.DEMO_AWS_ACCESS_KEY_ID }}
+          aws configure --profile demo set aws_secret_access_key ${{ secrets.DEMO_AWS_SECRET_ACCESS_KEY }}
+          aws configure --profile demo set region us-west-1  # Replace with your desired AWS region
+        env:
+          AWS_DEFAULT_REGION: us-west-1
+          AWS_PROFILE: demo
+
       - name: Fetch ami
         run: |
           latest_ami_id=$(aws ec2 describe-images \
@@ -66,11 +76,10 @@ jobs:
                             --output text)
           echo "Latest AMI ID is $latest_ami_id"
         shell: bash
-      - name: New Launch Template Version
+      - name: Create New Launch Template Version
         run: |
           aws ec2 create-launch-template-version \
-            --launch-template-id lt-05c57828138faee4f \
-            --source-version latest \
+            --launch-template-name my-launch-template \
+            --source-version 1 \
             --version-description "New version with updated AMI" \
-            --launch-template-data "{\"ImageId\": \"$latest_ami_id\"}" \
-            --region us-east-1
+            --launch-template-data "{\"ImageId\": \"$latest_ami_id\"}" 
