@@ -56,8 +56,8 @@ jobs:
       - name: packer init
         run: packer init .
 
-      # - name: build AMI
-      #   run: packer build .  
+      - name: build AMI
+        run: packer build .  
       
       - name: Set up AWS CLI Demo
         uses: aws-actions/configure-aws-credentials@v1
