@@ -115,7 +115,7 @@ function isValidDate(dateString) {
   return !isNaN(date) && dateString !== "";
 }
 
-app.post("/v1/assignments", isAuth, async (req, res) => {
+app.post("/demo/assignments", isAuth, async (req, res) => {
   // client.increment("post assignment")
   try {
     const postCredentials = getUser(req.headers.authorization);
@@ -176,7 +176,7 @@ app.post("/v1/assignments", isAuth, async (req, res) => {
 });
 
 
-app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
+app.put("/demo/assignments/:id", isAuth, async (req, res, next) => {
   // client.increment("put assignment")
   const assignmentId = req.params.id;
   try {
@@ -233,7 +233,7 @@ app.put("/v1/assignments/:id", isAuth, async (req, res, next) => {
 });
 
 
-app.get("/v1/assignments", isAuth, async (req, res, next) => {
+app.get("/demo/assignments", isAuth, async (req, res, next) => {
   // client.increment("get assignments")
   //const assignmentId = req.params.id;
   try {
@@ -252,7 +252,7 @@ app.get("/v1/assignments", isAuth, async (req, res, next) => {
 });
 
 
-app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
+app.get("/demo/assignments/:id", isAuth, async (req, res, next) => {
   // client.increment("get assignment using id")
   try {
     const assignmentId = req.params.id;
@@ -273,7 +273,7 @@ app.get("/v1/assignments/:id", isAuth, async (req, res, next) => {
 });
 
 
-app.delete("/v1/assignments/:id", isAuth, async (req, res, next) => {
+app.delete("/demo/assignments/:id", isAuth, async (req, res, next) => {
   // client.increment("delete assignment");
   const assignmentId = req.params.id;
   try {
@@ -309,7 +309,7 @@ app.patch('/*', isAuth, async(req,res,next)=>{
 })
 
 
-app.post("/v1/assignments/:id/submission", isAuth, async (req, res) => {
+app.post("/demo/assignments/:id/submission", isAuth, async (req, res) => {
   try {
     const postCredentials = getUser(req.headers.authorization);
     const [email] = postCredentials.split(":");
